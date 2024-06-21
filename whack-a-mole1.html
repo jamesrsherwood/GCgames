@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whack a Green Chemist</title>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            text-align: center;
+            background: url("./mario-bg.jpg");
+            background-size: cover;
+        }
+
+        #board {
+            width: 900px;
+            height: 480px;
+            margin: 0 auto;
+            display: flex;
+            flex-wrap: wrap;
+            background: url("./whack_background.png");
+            background-size: cover;
+            border: 3px solid white;
+            border-radius: 25px;
+        }
+
+        #board div {
+            width: 300px;
+            height: 160px;
+            background-image: url("./pipe.png");
+            background-size: cover;
+        }
+
+        #board div img {
+            width: 300px;
+            height: 80px;
+            user-select: none;
+            -moz-user-select: none;
+            -webkit-user-drag: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+        }
+    </style>
+    <script>
+        let currMoleTile;
+        let currPlantTile;
+        let score = 0;
+        let gameOver = false;
+
+        // Arrays to hold the file paths for the mole and plant images
+        let moleImages = [];
+        let plantImages = [];
+
+        for (let i = 1; i <= 20; i++) {
+            moleImages.push(`./mole${i}_1.png`, `./mole${i}_2.png`);
+            plantImages.push(`./plant${i}_1.png`, `./plant${i}_2.png`);
+        }
+
+        window.onload = function() {
+            setGame();
+            setInterval(alternateMoleImage, 600);
+            setInterval(alternatePlantImage, 600);
+        }
+
+        function setGame() {
+            for (let i = 0; i < 9; i++) {
+                let tile = document.createElement("div");
+                tile.id = i.toString();
+                tile.addEventListener("click", selectTile);
+                document.getElementById("board").appendChild(tile);
+            }
+            setInterval(setMole, 6000);
+            setInterval(setPlant, 6000);
+        }
+
+        function getRandomTile(excludeTileId) {
+            let num;
+            do {
+                num = Math.floor(Math.random() * 9);
+            } while (num.toString() === excludeTileId);
+            return num.toString();
+        }
+
+        function getRandomCharacter(images) {
+            let index = Math.floor(Math.random() * (images.length / 2)) * 2;
+            return index;
+        }
+
+        function setMole() {
+            if (gameOver) {
+                return;
+            }
+            if (currMoleTile) {
+                currMoleTile.innerHTML = "";
+            }
+            let moleImageIndex = getRandomCharacter(moleImages);
+            let mole = document.createElement("img");
+            mole.src = moleImages[moleImageIndex];
+            mole.dataset.index = moleImageIndex;
+
+            let num = getRandomTile(currPlantTile ? currPlantTile.id : null);
+            currMoleTile = document.getElementById(num);
+            currMoleTile.appendChild(mole);
+        }
+
+        function setPlant() {
+            if (gameOver) {
+                return;
+            }
+            if (currPlantTile) {
+                currPlantTile.innerHTML = "";
+            }
+            let plantImageIndex = getRandomCharacter(plantImages);
+            let plant = document.createElement("img");
+            plant.src = plantImages[plantImageIndex];
+            plant.dataset.index = plantImageIndex;
+
+            let num = getRandomTile(currMoleTile ? currMoleTile.id : null);
+            currPlantTile = document.getElementById(num);
+            currPlantTile.appendChild(plant);
+        }
+
+        function selectTile() {
+            if (gameOver) {
+                return;
+            }
+            if (this == currMoleTile) {
+                score += 10;
+                document.getElementById("score").innerText = score.toString();
+                currMoleTile.innerHTML = ""; // Clear the mole when clicked
+                currMoleTile = null; // Reset the current mole tile
+            }
+            else if (this == currPlantTile) {
+                document.getElementById("score").innerText = "GAME OVER: " + score.toString();
+                gameOver = true;
+            }
+        }
+
+        function alternateMoleImage() {
+            if (currMoleTile && currMoleTile.firstChild) {
+                let currentIndex = parseInt(currMoleTile.firstChild.dataset.index);
+                let newIndex = currentIndex % 2 === 0 ? currentIndex + 1 : currentIndex - 1;
+                currMoleTile.firstChild.src = moleImages[newIndex];
+                currMoleTile.firstChild.dataset.index = newIndex;
+            }
+        }
+
+        function alternatePlantImage() {
+            if (currPlantTile && currPlantTile.firstChild) {
+                let currentIndex = parseInt(currPlantTile.firstChild.dataset.index);
+                let newIndex = currentIndex % 2 === 0 ? currentIndex + 1 : currentIndex - 1;
+                currPlantTile.firstChild.src = plantImages[newIndex];
+                currPlantTile.firstChild.dataset.index = newIndex;
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Whack a Green Chemist - Ignore pollutors</h1>
+    <h2 id="score">0</h2>
+    <div id="board"></div>
+</body>
+</html>

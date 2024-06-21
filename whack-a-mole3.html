@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whack a Scientist!</title>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            text-align: center;
+            background: url("./mario-bg.jpg");
+            background-size: cover;
+        }
+
+        #board {
+            width: 900px;
+            height: 480px;
+            margin-left: 2px;
+            display: flex;
+            flex-wrap: wrap;
+            background: url("./whack_background.png");
+            background-size: cover;
+            border: 3px solid white;
+            border-radius: 25px;
+        }
+
+        #board div {
+            width: 300px;
+            height: 160px;
+            background-image: url("./pipe.png");
+            background-size: cover;
+        }
+
+        #board div img {
+            width: 300px;
+            height: 80px;
+            user-select: none;
+            -moz-user-select: none;
+            -webkit-user-drag: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+        }
+
+        #scoreboard {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #score, #highScore {
+            margin: 0 20px;
+        }
+
+        #gameOverImage, #timeUpImage {
+            display: none;
+            width: 100%;
+            height: auto;
+        }
+    </style>
+    <script>
+        let currMoleTile;
+        let currPlantTile;
+        let score = 0;
+        let gameOver = false;
+        let intervalTime = 7500; // Start interval time at 7500ms (7.5 seconds)
+        let highScore = 0;
+        let moleTimeout;
+        let plantTimeout;
+
+        // Arrays to hold the file paths for the mole and plant images
+        let moleImages = [];
+        let plantImages = [];
+
+        for (let i = 1; i <= 20; i++) {
+            moleImages.push(`./mole${i}_1.png`, `./mole${i}_2.png`);
+            plantImages.push(`./plant${i}_1.png`, `./plant${i}_2.png`);
+        }
+
+        window.onload = function() {
+            setGame();
+            setInterval(alternateMoleImage, 600);
+            setInterval(alternatePlantImage, 600);
+        }
+
+        function setGame() {
+            for (let i = 0; i < 9; i++) {
+                let tile = document.createElement("div");
+                tile.id = i.toString();
+                tile.addEventListener("click", selectTile);
+                document.getElementById("board").appendChild(tile);
+            }
+            scheduleNextMole();
+            scheduleNextPlant();
+        }
+
+        function resetGame() {
+            score = 0;
+            intervalTime = 7500;
+            gameOver = false;
+            document.getElementById("score").innerText = "Your Score: " + score;
+            document.getElementById("highScore").innerText = "High Score: " + highScore;
+            if (currMoleTile) currMoleTile.innerHTML = "";
+            if (currPlantTile) currPlantTile.innerHTML = "";
+            currMoleTile = null;
+            currPlantTile = null;
+            clearTimeout(moleTimeout);
+            clearTimeout(plantTimeout);
+            scheduleNextMole();
+            scheduleNextPlant();
+            document.getElementById("gameOverImage").style.display = "none";
+            document.getElementById("timeUpImage").style.display = "none";
+            document.getElementById("board").style.display = "flex";
+        }
+
+        function getRandomTile(excludeTileId) {
+            let num;
+            do {
+                num = Math.floor(Math.random() * 9);
+            } while (num.toString() === excludeTileId);
+            return num.toString();
+        }
+
+        function getRandomCharacter(images) {
+            let index = Math.floor(Math.random() * (images.length / 2)) * 2;
+            return index;
+        }
+
+        function setMole() {
+            if (gameOver) {
+                return;
+            }
+            if (currMoleTile) {
+                currMoleTile.innerHTML = "";
+            }
+            let moleImageIndex = getRandomCharacter(moleImages);
+            let mole = document.createElement("img");
+            mole.src = moleImages[moleImageIndex];
+            mole.dataset.index = moleImageIndex;
+
+            let num = getRandomTile(currPlantTile ? currPlantTile.id : null);
+            currMoleTile = document.getElementById(num);
+            currMoleTile.appendChild(mole);
+
+            scheduleNextMole();
+        }
+
+        function setPlant() {
+            if (gameOver) {
+                return;
+            }
+            if (currPlantTile) {
+                currPlantTile.innerHTML = "";
+            }
+            let plantImageIndex = getRandomCharacter(plantImages);
+            let plant = document.createElement("img");
+            plant.src = plantImages[plantImageIndex];
+            plant.dataset.index = plantImageIndex;
+
+            let num = getRandomTile(currMoleTile ? currMoleTile.id : null);
+            currPlantTile = document.getElementById(num);
+            currPlantTile.appendChild(plant);
+
+            scheduleNextPlant();
+        }
+
+        function selectTile() {
+            if (gameOver) {
+                return;
+            }
+            if (this == currMoleTile) {
+                score += 10;
+                document.getElementById("score").innerText = "Your Score: " + score.toString();
+                currMoleTile.innerHTML = ""; // Clear the mole when clicked
+                currMoleTile = null; // Reset the current mole tile
+            } else if (this == currPlantTile) {
+                document.getElementById("score").innerText = "GAME OVER: " + score.toString();
+                gameOver = true;
+                const index = parseInt(currPlantTile.firstChild.dataset.index);
+                if (index % 2 === 0) {
+                    // If index is even, it corresponds to _1 images
+                    showGameOverImageFor1Image((index / 2) + 1);
+                } else {
+                    // If index is odd, it corresponds to _2 images
+                    showGameOverImageFor2Image(((index - 1) / 2) + 1);
+                }
+                // Clear mole and plant images when game is over
+                if (currMoleTile) currMoleTile.innerHTML = "";
+                if (currPlantTile) currPlantTile.innerHTML = "";
+                // Update high score if current score is greater
+                if (score > highScore) {
+                    highScore = score;
+                }
+                document.getElementById("highScore").innerText = "High Score: " + highScore;
+            }
+        }
+
+
+        function showGameOverImageFor1Image(plantIndex) {
+            document.getElementById("board").style.display = "none";
+            let gameOverImage = document.getElementById("gameOverImage");
+            gameOverImage.src = `./plant${plantIndex}_3.png`;
+
+            gameOverImage.onload = function() {
+                gameOverImage.style.display = "block";
+            };
+
+            gameOverImage.onerror = function() {
+                gameOverImage.style.display = "block";
+                gameOverImage.src = "";
+                gameOverImage.alt = "You whacked a normal scientist!";
+            };
+        }
+
+        function showGameOverImageFor2Image(plantIndex) {
+            document.getElementById("board").style.display = "none";
+            let gameOverImage = document.getElementById("gameOverImage");
+            gameOverImage.src = `./plant${plantIndex}_3.png`;
+
+            gameOverImage.onload = function() {
+                gameOverImage.style.display = "block";
+            };
+
+            gameOverImage.onerror = function() {
+                gameOverImage.style.display = "block";
+                gameOverImage.src = "";
+                gameOverImage.alt = "You whacked a normal scientist!";
+            };
+        }
+
+
+        function showTimeUpImage() {
+            document.getElementById("board").style.display = "none";
+            document.getElementById("timeUpImage").style.display = "block";
+        }
+
+        function alternateMoleImage() {
+            if (currMoleTile && currMoleTile.firstChild) {
+                let currentIndex = parseInt(currMoleTile.firstChild.dataset.index);
+                let newIndex = currentIndex % 2 === 0 ? currentIndex + 1 : currentIndex - 1;
+                currMoleTile.firstChild.src = moleImages[newIndex];
+                currMoleTile.firstChild.dataset.index = newIndex;
+            }
+        }
+
+        function alternatePlantImage() {
+            if (currPlantTile && currPlantTile.firstChild) {
+                let currentIndex = parseInt(currPlantTile.firstChild.dataset.index);
+                let newIndex = currentIndex % 2 === 0 ? currentIndex + 1 : currentIndex - 1;
+                currPlantTile.firstChild.src = plantImages[newIndex];
+                currPlantTile.firstChild.dataset.index = newIndex;
+            }
+        }
+
+        function scheduleNextMole() {
+            if (intervalTime <= 500) { // Stop the game if interval reaches 0.5 seconds
+                gameOver = true;
+                document.getElementById("score").innerText = "GAME OVER: " + score.toString();
+                if (currMoleTile) currMoleTile.innerHTML = "";
+                if (currPlantTile) currPlantTile.innerHTML = "";
+                showTimeUpImage();
+                // Update high score if current score is greater
+                if (score > highScore) {
+                    highScore = score;
+                }
+                document.getElementById("highScore").innerText = "High Score: " + highScore;
+                return;
+            }
+            moleTimeout = setTimeout(setMole, intervalTime);
+            intervalTime = Math.max(500, intervalTime - 100); // Decrease interval time by 0.1 seconds, but not below 0.5 seconds
+        }
+
+        function scheduleNextPlant() {
+            if (intervalTime <= 500) { // Stop the game if interval reaches 0.5 seconds
+                gameOver = true;
+                document.getElementById("score").innerText = "GAME OVER: " + score.toString();
+                if (currMoleTile) currMoleTile.innerHTML = "";
+                if (currPlantTile) currPlantTile.innerHTML = "";
+                showTimeUpImage();
+                // Update high score if current score is greater
+                if (score > highScore) {
+                    highScore = score;
+                }
+                document.getElementById("highScore").innerText = "High Score: " + highScore;
+                return;
+            }
+            plantTimeout = setTimeout(setPlant, intervalTime);
+            intervalTime = Math.max(500, intervalTime - 100); // Decrease interval time by 0.1 seconds, but not below 0.5 seconds
+        }
+    </script>
+
+</head>
+<body>
+    <h1>Whack the Green Chemists - Avoid the other scientists</h1>
+    <div id="scoreboard">
+        <h2 id="score">Your Score: 0</h2>
+        <h2 id="highScore">High Score: 0</h2>
+    </div>
+    <div id="board"></div>
+    <img id="gameOverImage" src="" alt="You whacked a normal scientist!">
+    <img id="timeUpImage" src="gameover.jpg" alt="Time's Up" style="width: 700px; height: 200px;">
+    <button onclick="resetGame()">Restart Game</button> <button onclick="location.href='GCgame_hub.html'">Return to Main Menu</button>
+</body>
+</html>
