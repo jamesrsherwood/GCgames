@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Main Menu</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        .main-menu {
+            display: flex;
+            justify-content: center;
+            margin-top: 50px;
+        }
+        .game {
+            margin: 0 20px;
+            cursor: pointer;
+        }
+        .game img {
+            width: 200px;
+            height: 200px;
+            object-fit: cover;
+        }
+        .game h2 {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1><img src="UoYlogo.jpg" alt="" style="width: 100px; height: 40px;">    Welcome to the Green Chemistry games hub    <img src="GCCElogo.jpg" alt="" style="width: 100px; height: 40px;"></h1>
+    <h3>Green Chemistry is about creating safe and sustainable products to minimise the negative impacts of the chemical industry on human health and the environment. Play these games to improve your green chemistry knowledge!</h3>
+    <div class="main-menu">
+        <div>
+            <img src="ACS12GC.jpg" alt="" style="width: 300px; height: 420px;">
+        </div>   
+        <div class="game" onclick="location.href='GCquiz1b.html'">
+            <img src="gamethumb1.jpg" alt="Game 1">
+            <h2>Green Chemistry quiz</h2>
+        </div>
+        <div class="game" onclick="location.href='whack-a-mole2.html'">
+            <img src="gamethumb2.jpg" alt="Game 2">
+            <h2>Whack-a-scientist</h2>
+        </div>
+        <div class="game" onclick="location.href='Sustainable_meal_planner-game_hub_version.html'">
+            <img src="gamethumb3.jpg" alt="Game 3">
+            <h2>Sustainable meal planner</h2>
+        </div>
+    </div>  
+    <div class="links">
+        <a href="https://www.rsc.org/periodic-table" target="_blank">Interactive periodic table</a>
+        <br>
+        <a href="https://www.acs.org/greenchemistry/principles/12-principles-of-green-chemistry.html" target="_blank">American Chemistry Society guide to Green Chemistry</a>
+    </div>    
+</body>
+</html>
